@@ -45,7 +45,7 @@ First public release.
   machine-readable index.
 - Demo turning a ten page A4 document of full-bleed artwork, and
   `tools/frames.mjs` for judging the curl at fixed progress values.
-- 26 geometry unit tests and 39 browser checks.
+- 26 geometry unit tests and 40 browser checks.
 
 ### Changed
 
@@ -83,6 +83,10 @@ First public release.
   off screen.
 - The book shadow bound a null texture and painted a solid dark plate over the
   stage.
+- A stalled frame stretched a release: the spring integrator advanced at most
+  50 ms per delivered frame, so a long frame moved the page 50 ms instead of the
+  time that actually passed. It now advances by the real elapsed time in fixed
+  substeps.
 
 ### Known limitations
 

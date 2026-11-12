@@ -631,15 +631,18 @@ export class Flipbook {
 
   _stepSpring(anim, time) {
     if (!anim.last) anim.last = time;
-    // Two fixed sub-steps keep the integrator stable when a frame runs long
-    // (tab switch, layout thrash) without making the motion frame-rate
-    // dependent.
-    const dt = Math.min(0.05, Math.max(0, (time - anim.last) / 1000));
+    // Sub-step at a fixed step size so the integrator stays stable, but advance
+    // the whole elapsed time. Capping the frame at 50 ms made a stalled main
+    // thread stretch a 300 ms turn into seconds of wall-clock time, because the
+    // simulation only moved forward once per delivered frame.
+    const raw = Math.max(0, (time - anim.last) / 1000);
     anim.last = time;
+    const dt = Math.min(0.25, raw);
     anim.elapsed += dt;
-    const h = dt > 0 ? dt / 2 : 1 / 120;
     const { omega } = anim;
-    for (let i = 0; i < (dt > 0 ? 2 : 1); i++) {
+    const steps = dt > 0 ? Math.max(1, Math.min(60, Math.ceil(dt * 120))) : 1;
+    const h = dt > 0 ? dt / steps : 1 / 120;
+    for (let i = 0; i < steps; i++) {
       const a = -omega * omega * anim.x - 2 * omega * anim.v;
       anim.v += a * h;
       anim.x += anim.v * h;

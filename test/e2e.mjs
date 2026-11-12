@@ -278,11 +278,36 @@ const flick = await page.evaluate(async () => {
   }
   const progress = book.turn ? book.turn.progress : null;
   up(box.left + box.width * 0.72 - 88);
-  await new Promise((r) => setTimeout(r, 900));
-  return { progress, spread: book.spread, anim: book._anim?.kind ?? null };
+  // Read the animation kind on the frame the release starts. Once the turn has
+  // settled it is null either way, so a later read cannot tell a spring from a
+  // fixed tween.
+  const anim = book._anim?.kind ?? null;
+  // Wait for the turn to land instead of guessing a duration: the spring
+  // settles when it settles, and a slow CI frame can push that past any fixed
+  // sleep. The race is a guard against a stuck animation, not a timer.
+  await Promise.race([book._whenIdle(), new Promise((r) => setTimeout(r, 6000))]);
+  return { progress, spread: book.spread, anim };
 });
 check("a short flick still commits", flick.spread === 3, JSON.stringify(flick));
-check("release runs the spring", flick.anim === null, `anim=${flick.anim}`);
+check("release runs the spring", flick.anim === "spring", `anim=${flick.anim}`);
+
+// A stalled main thread used to stretch a turn: the integrator advanced at most
+// 50 ms per delivered frame, so a 200 ms frame moved the spring 50 ms. It has
+// to advance by the time that actually passed.
+const stall = await page.evaluate(() => {
+  const book = document.querySelector("[data-flip-pdf]").flipbook;
+  const saved = book.turn;
+  book.turn = { progress: 0 };
+  const anim = { kind: "spring", from: 0, to: 1, x: -1, v: 0, omega: 11, elapsed: 0, last: 1000 };
+  book._stepSpring(anim, 1200); // one 200 ms frame
+  book.turn = saved;
+  return { x: Number(anim.x.toFixed(4)), elapsed: Number(anim.elapsed.toFixed(3)) };
+});
+check(
+  "a stalled frame advances the spring by the time that passed",
+  stall.elapsed >= 0.19 && Math.abs(stall.x) < 0.45,
+  JSON.stringify(stall),
+);
 
 // ------------------------------------------------- no blank landing side
 // A turn used to drop the sheet one frame before the commit while the static
