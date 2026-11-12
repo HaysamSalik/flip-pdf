@@ -1,0 +1,26 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Test artefacts
+test/screenshots/
+*.log
+
+# Internal working notes
+.opencode/
+
+# Local-only documents and generated fixtures
+demo/BAA-62-Primer_R1.pdf
+demo/sample-generated.pdf
+
+# Reference material pulled from the web for design study. This is a saved copy
+# of a commercial product's page (DearFlip), not ours to redistribute.
+PDF Embed Flipbook Example*
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# The demo copy at demo/sample.pdf is the tracked fixture; this is the
+# original download kept locally, not a second copy in the repository.
+/sample.pdf

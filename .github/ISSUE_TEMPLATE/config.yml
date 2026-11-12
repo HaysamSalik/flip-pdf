@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/HaysamSalik/flip-pdf/security/advisories/new
+    about: Report a vulnerability privately instead of opening a public issue.
+  - name: Question about PDF.js itself
+    url: https://github.com/mozilla/pdf.js/discussions
+    about: Problems rendering a particular PDF usually belong upstream.

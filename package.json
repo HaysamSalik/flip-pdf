@@ -1,0 +1,59 @@
+{
+  "name": "flip-pdf",
+  "version": "0.1.0",
+  "description": "Turn a PDF into a page-turning flipbook. Curved paper geometry, WebGL, no runtime dependencies beyond PDF.js.",
+  "type": "module",
+  "license": "MIT",
+  "main": "./dist/flip-pdf.js",
+  "module": "./dist/flip-pdf.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/flip-pdf.mjs",
+      "default": "./dist/flip-pdf.js"
+    },
+    "./worker": "./dist/pdf.worker.min.mjs",
+    "./style.css": "./dist/flip-pdf.css"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "AGENTS.md",
+    "llms.txt",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "npm run build && node tools/serve.mjs",
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "test": "node --test test/*.test.mjs",
+    "e2e": "node test/e2e.mjs",
+    "serve": "node tools/serve.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "pdfjs-dist": "^6.5.438",
+    "playwright-core": "^1.56.0"
+  },
+  "keywords": [
+    "pdf",
+    "flipbook",
+    "page-turn",
+    "page-curl",
+    "pdfjs",
+    "webgl",
+    "viewer",
+    "ebook",
+    "magazine"
+  ],
+  "homepage": "https://github.com/HaysamSalik/flip-pdf#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HaysamSalik/flip-pdf.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HaysamSalik/flip-pdf/issues"
+  },
+  "author": "Haysam Salik (https://github.com/HaysamSalik)"
+}

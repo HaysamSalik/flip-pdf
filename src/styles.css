@@ -1,0 +1,319 @@
+/* flip-pdf: viewer chrome. Paper and ink, one accent, no decoration. */
+
+.fp-host {
+  --fp-ink: #1c1917;
+  --fp-paper: #fbfaf7;
+  --fp-desk: #e8e3da;
+  --fp-muted: #5f5850;
+  --fp-line: #d6cfc4;
+  --fp-accent: #9a3412;
+  --fp-radius: 12px;
+  display: block;
+  height: 100%;
+  min-height: 360px;
+  container-type: inline-size;
+}
+
+.fp {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: inherit;
+  background: var(--fp-desk);
+  color: var(--fp-ink);
+  border-radius: var(--fp-radius);
+  overflow: hidden;
+  isolation: isolate;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.fp:focus-visible {
+  outline: 2px solid var(--fp-accent);
+  outline-offset: 2px;
+}
+
+.fp-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  touch-action: pan-y;
+  cursor: grab;
+  background:
+    radial-gradient(120% 90% at 50% 42%, #f3efe7 0%, var(--fp-desk) 58%, #ded7cb 100%);
+}
+
+.fp-stage:active {
+  cursor: grabbing;
+}
+
+.fp-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------- status */
+
+.fp-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--fp-muted);
+  background: color-mix(in srgb, var(--fp-desk) 88%, transparent);
+  font-size: 13px;
+}
+
+.fp-status[hidden],
+.fp-drawer[hidden] {
+  display: none;
+}
+
+.fp-status[data-state="error"] {
+  color: var(--fp-ink);
+}
+
+.fp-status::before {
+  content: "";
+  justify-self: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--fp-muted) 30%, transparent);
+  border-top-color: var(--fp-accent);
+  animation: fp-spin 900ms linear infinite;
+}
+
+.fp-status[data-state="error"]::before {
+  animation: none;
+  border-color: transparent;
+  background: var(--fp-accent);
+  mask: conic-gradient(from 0deg, #000 0 100%);
+  border-radius: 3px;
+  transform: rotate(45deg) scale(0.62);
+}
+
+@keyframes fp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fp-retry {
+  justify-self: center;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--fp-line);
+  background: var(--fp-paper);
+  color: var(--fp-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.fp-retry:hover {
+  border-color: var(--fp-muted);
+}
+
+/* ---------------------------------------------------------------- toolbar */
+
+.fp-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px 10px;
+  background: var(--fp-desk);
+}
+
+.fp-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fp-ink);
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.fp-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fp-paper) 80%, var(--fp-desk));
+  border-color: var(--fp-line);
+}
+
+.fp-btn:active:not(:disabled) {
+  background: color-mix(in srgb, var(--fp-paper) 55%, var(--fp-desk));
+}
+
+.fp-btn:focus-visible {
+  outline: 2px solid var(--fp-accent);
+  outline-offset: 1px;
+}
+
+.fp-btn:disabled {
+  color: color-mix(in srgb, var(--fp-muted) 55%, var(--fp-desk));
+  cursor: not-allowed;
+}
+
+.fp-readout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.fp-progress {
+  width: 72px;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--fp-ink) 14%, transparent);
+  overflow: hidden;
+}
+
+.fp-progress-fill {
+  display: block;
+  height: 100%;
+  inline-size: 0%;
+  background: var(--fp-accent);
+  transition: inline-size 260ms ease;
+}
+
+.fp-counter {
+  min-width: 7.5ch;
+  color: var(--fp-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- drawer */
+
+.fp-drawer {
+  position: absolute;
+  inset-inline: 8px;
+  bottom: 58px;
+  max-height: min(46%, 380px);
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--fp-line);
+  background: var(--fp-paper);
+  box-shadow: 0 12px 28px -18px rgb(28 25 23 / 45%);
+  overflow: hidden;
+  display: flex;
+}
+
+.fp-thumbs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+  width: 100%;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.fp-thumb {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--fp-line);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  aspect-ratio: 0.72;
+  overflow: hidden;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.fp-thumb:hover {
+  border-color: var(--fp-muted);
+}
+
+.fp-thumb:focus-visible {
+  outline: 2px solid var(--fp-accent);
+  outline-offset: 1px;
+}
+
+.fp-thumb.is-current {
+  border-color: var(--fp-accent);
+  box-shadow: inset 0 0 0 1px var(--fp-accent);
+}
+
+.fp-thumb-img {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #f4f1ec;
+  border-radius: 3px;
+  min-height: 0;
+}
+
+.fp-thumb-img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fp-thumb-n {
+  font-size: 11px;
+  color: var(--fp-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* --------------------------------------------------------------- utility */
+
+.fp-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fp:fullscreen {
+  border-radius: 0;
+  padding: 0;
+}
+
+@container (max-width: 420px) {
+  .fp-progress {
+    width: 44px;
+  }
+  .fp-counter {
+    min-width: 6ch;
+    font-size: 12px;
+  }
+  .fp-bar {
+    padding-inline: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-btn,
+  .fp-thumb,
+  .fp-progress-fill {
+    transition-duration: 0ms;
+  }
+  .fp-status::before {
+    animation: none;
+  }
+}

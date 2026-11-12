@@ -1,0 +1,36 @@
+# flip-pdf
+
+> Turn a PDF into a virtual flipbook with a curved, physical page-turn animation. One script tag, no dependencies beyond the bundled PDF.js, MIT licensed.
+
+flip-pdf is a browser library that renders a PDF as a two-page spread and animates sheet turns as real curved paper geometry in WebGL, with a Canvas 2D fallback. The page is a rasterised canvas, so it is for presentation, not for text extraction or search.
+
+Integration, in full:
+
+```html
+<script src="flip-pdf.js" defer></script>
+<div data-flip-pdf data-src="/document.pdf" style="height: 620px"></div>
+```
+
+## Docs
+
+- [AGENTS.md](https://github.com/HaysamSalik/flip-pdf/blob/main/AGENTS.md): integration guide written for coding agents, with the API, events, options and the mistakes that break it
+- [README.md](https://github.com/HaysamSalik/flip-pdf/blob/main/README.md): full option table, motion and accessibility notes, browser support
+- [docs/ARCHITECTURE.md](https://github.com/HaysamSalik/flip-pdf/blob/main/docs/ARCHITECTURE.md): how the sheet geometry, renderers and page cache fit together
+
+## API
+
+- `new Flipbook(element, options?)`
+- `load(source): Promise<Flipbook>`, `next()`, `prev()`, `goToPage(index)`, `goToSpread(spread)`, `destroy()`
+- `on(type, handler): () => void` for `ready`, `pagechange`, `warning`, `error`
+- Auto-init: every `[data-flip-pdf]` element, with `data-src` and any other `data-*` as options
+
+## Constraints
+
+- The container must have an explicit height.
+- Serve over HTTP; `file://` cannot load the worker or the PDF.
+- The default worker is a blob URL and needs `worker-src blob:` under a strict CSP. Otherwise pass `workerSrc` and link `flip-pdf.css`.
+
+## Optional
+
+- [CHANGELOG.md](https://github.com/HaysamSalik/flip-pdf/blob/main/CHANGELOG.md): release notes
+- [demo](https://github.com/HaysamSalik/flip-pdf/tree/main/demo): the integration shipped as a working page

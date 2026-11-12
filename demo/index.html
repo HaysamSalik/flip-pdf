@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>flip-pdf: a PDF becomes a flipbook</title>
+<meta name="description" content="An open-source page-turning PDF viewer. WebGL page curl, drag to turn, keyboard and touch support.">
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --ink: #1c1917;
+    --muted: #5f5850;
+    --paper: #fbfaf7;
+    --desk: #e8e3da;
+    --line: #d6cfc4;
+    --accent: #9a3412;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 20px 80px; }
+  header { display: grid; gap: 10px; margin-bottom: 28px; }
+  .wordmark {
+    margin: 0 0 2px;
+    font: 600 15px/1 ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.005em;
+    color: var(--accent);
+  }
+  h1 {
+    font: 600 32px/1.15 ui-serif, Georgia, "Times New Roman", serif;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .lede { margin: 0; max-width: 62ch; color: var(--muted); }
+  .crop {
+    width: 56px; height: 4px; background: var(--accent); margin-bottom: 18px;
+  }
+  .viewer {
+    height: min(72vh, 660px);
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--desk);
+  }
+  .hint {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .notice {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border: 1px solid #b45309;
+    border-inline-start-width: 4px;
+    border-radius: 6px;
+    background: #fef3e2;
+    color: #6b3410;
+    font-size: 13.5px;
+  }
+  .notice code { color: #6b3410; }
+  h2 {
+    font: 600 18px/1.3 ui-serif, Georgia, serif;
+    margin: 0 0 8px;
+  }
+  section { margin-top: 44px; }
+  ul { padding-left: 18px; margin: 0; color: var(--muted); }
+  li { margin-bottom: 6px; }
+  li strong { color: var(--ink); font-weight: 600; }
+  pre {
+    margin: 0;
+    padding: 16px 18px;
+    background: #f3efe7;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow-x: auto;
+    font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #2b2621;
+  }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .split { display: grid; gap: 28px; grid-template-columns: 1fr; }
+  .split > * { min-width: 0; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  footer { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--muted); font-size: 13px; }
+  @media (min-width: 860px) {
+    .split { grid-template-columns: 1fr 1fr; }
+    h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="crop" aria-hidden="true"></div>
+    <p class="wordmark">flip-pdf</p>
+    <h1>A PDF that turns like a book</h1>
+    <p class="lede">
+      An open-source viewer that renders each page with PDF.js and turns it with a
+      curved WebGL sheet. Drag the corner, swipe, or use the arrow keys.
+    </p>
+  </header>
+  <main>
+
+  <p class="notice" id="file-notice" hidden>
+    This page needs a local server: opened from <code>file://</code>, the browser
+    blocks module scripts and the PDF fetch. Run <code>npm start</code> in the
+    project folder, then open <code>http://127.0.0.1:8099/demo/</code>.
+  </p>
+
+  <div class="viewer">
+    <div data-flip-pdf data-src="./sample.pdf" data-label="Sample PDF"></div>
+  </div>
+  <p class="hint">
+    <span id="page-count">Loading</span>. Drag horizontally to turn, click a side
+    to step, or press the arrow keys.
+  </p>
+
+  <section>
+    <div class="split">
+      <div>
+        <h2>Use it</h2>
+        <p style="margin-top:0;color:var(--muted)">One script tag, one element with a <code>data-src</code>. Everything else is optional.</p>
+<pre><code>&lt;script src="dist/flip-pdf.js" defer&gt;&lt;/script&gt;
+
+&lt;div data-flip-pdf data-src="book.pdf" style="height: 620px"&gt;&lt;/div&gt;
+</code></pre>
+      </div>
+      <div>
+        <h2>Or drive it yourself</h2>
+        <p style="margin-top:0;color:var(--muted)">The class is exported for bundlers and exposes the same controls the chrome uses.</p>
+<pre><code>import { Flipbook } from "flip-pdf";
+
+const book = new Flipbook(el, { mode: "double" });
+await book.load("/book.pdf");
+
+book.next();
+book.goToPage(9);
+book.on("pagechange", ({ spread }) =&gt; {});
+</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="split">
+      <div>
+        <h2>What the sheet actually does</h2>
+        <ul>
+          <li><strong>Curved, not rotated.</strong> The leaf is integrated as an arc from the spine, so segment length is preserved and the page foreshortens instead of stretching.</li>
+          <li><strong>Lit by its own normal.</strong> A flat page renders at exactly full brightness; the turning sheet darkens only where it faces away from the light.</li>
+          <li><strong>Two textures per sheet.</strong> The front and back are separate pages, mirrored on the back so the arriving page reads correctly.</li>
+          <li><strong>Camera pulls back mid-turn</strong>, which is what keeps the swinging edge inside the frame.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>What it does not do</h2>
+        <ul>
+          <li><strong>No text selection or search.</strong> Pages are rasterised to textures.</li>
+          <li><strong>No annotation layer.</strong> Form fields and links inside the PDF are not interactive.</li>
+          <li><strong>No server.</strong> The PDF is fetched by the browser and rendered locally; nothing is uploaded.</li>
+          <li><strong>No fallback for encrypted files</strong> beyond PDF.js's own password prompt hook.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer>
+    MIT licensed. Uses <a href="https://mozilla.github.io/pdf.js/">PDF.js</a> (Apache-2.0) for rasterising.
+    Sample document: <a href="./sample.pdf">sample.pdf</a>.
+  </footer>
+</div>
+
+<script>
+  // Loading a module from file:// fails silently in Chrome, so say why.
+  if (location.protocol === "file:") document.getElementById("file-notice").hidden = false;
+</script>
+<script type="module" src="../dist/flip-pdf.mjs"></script>
+<script type="module">
+  const host = document.querySelector("[data-flip-pdf]");
+  const label = document.getElementById("page-count");
+  const check = () => {
+    const book = host.flipbook;
+    if (book?.ready) label.textContent = `${book.pageCount} pages`;
+    else if (book?.nodes?.status?.dataset?.state === "error") label.textContent = "Could not load the PDF";
+    else setTimeout(check, 80);
+  };
+  check();
+</script>
+</body>
+</html>
