@@ -1,5 +1,7 @@
 # flip-pdf
 
+[![CI](https://github.com/HaysamSalik/flip-pdf/actions/workflows/ci.yml/badge.svg)](https://github.com/HaysamSalik/flip-pdf/actions/workflows/ci.yml)
+
 Turn a PDF into a page-turning flipbook. One script tag, one container, no
 build step and no runtime dependencies beyond the copy of PDF.js that ships in
 the bundle.
