@@ -297,7 +297,12 @@ const thumbs = await page.evaluate(async () => {
   const out = [];
   for (const host of hosts) {
     host.querySelector(".fp-btn.fp-thumbs").click();
-    await new Promise((r) => setTimeout(r, 900));
+    // Thumbnails are painted three at a time; wait for the last one instead of
+    // trusting a sleep, which is what made this check flaky on CI.
+    for (let i = 0; i < 120; i++) {
+      if (host.querySelectorAll(".fp-thumb-img img").length === host.querySelectorAll(".fp-thumb").length) break;
+      await new Promise((r) => setTimeout(r, 50));
+    }
     const box = host.querySelector(".fp-thumb-img");
     const img = box.querySelector("img");
     out.push({
