@@ -21,6 +21,8 @@ the usual 0.x caveat that the public surface may still move.
 
 ### Added
 
+- A live demo on GitHub Pages at <https://haysamsalik.github.io/flip-pdf/>,
+  deployed from `main` by `.github/workflows/pages.yml`.
 - Container queries for narrow columns: the progress bar drops out below 300 px
   and the counter below 220 px, so navigation never overflows.
 - A "fits the column" section in the demo, showing the same document at 380 px

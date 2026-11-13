@@ -11,6 +11,9 @@ is a curved strip whose arc length is preserved as it swings, so the page
 foreshortens, catches light on its curve, and casts a moving shadow on the page
 underneath.
 
+**[Live demo](https://haysamsalik.github.io/flip-pdf/)** on GitHub Pages, served
+from the same build the tests run against.
+
 ![A spread open in flip-pdf, with the toolbar underneath](docs/screenshots/spread.jpg)
 
 ```

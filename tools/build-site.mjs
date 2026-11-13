@@ -38,5 +38,7 @@ await writeFile(path.join(out, "index.html"), html);
 await copyFile("dist/flip-pdf.js", path.join(out, "flip-pdf.js"));
 await copyFile("demo/sample.pdf", path.join(out, "sample.pdf"));
 await writeFile(path.join(out, "robots.txt"), "User-agent: *\nAllow: /\n");
+// Pages runs Jekyll on the artifact by default; nothing here needs it.
+await writeFile(path.join(out, ".nojekyll"), "");
 
 console.log(`site built in ${out}`);

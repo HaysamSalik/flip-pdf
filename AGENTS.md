@@ -9,6 +9,8 @@ to a page, read the first two sections and stop. Everything else is reference.
 The sheet is curved geometry with preserved arc length, drawn in WebGL (Canvas
 2D fallback), not a CSS `rotateY`. It ships as one file with PDF.js bundled in.
 
+Live example: <https://haysamsalik.github.io/flip-pdf/>.
+
 Use it when the job is *presenting* a PDF as a book. Do not use it when the job
 is *reading* one: pages are rasterised to a canvas, so text is not selectable,
 searchable, or accessible to screen readers. For text extraction, show the PDF in
