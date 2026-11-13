@@ -41,12 +41,12 @@ await page.goto(`${BASE}/demo/`, { waitUntil: "networkidle" });
 
 // ---------------------------------------------------------------- ready
 await page.waitForFunction(() => {
-  const host = document.querySelector("[data-flip-pdf]");
+  const host = document.querySelector(".viewer [data-flip-pdf]");
   return host?.querySelector(".fp") && host.flipbook?.ready === true;
 }, null, { timeout: 20000 }).catch(() => {});
 
 const state = await page.evaluate(() => {
-  const host = document.querySelector("[data-flip-pdf]");
+  const host = document.querySelector(".viewer [data-flip-pdf]");
   const fp = host?.querySelector(".fp");
   const canvas = host?.querySelector(".fp-canvas");
   return {
@@ -72,16 +72,16 @@ check("no horizontal overflow", state.overflow <= 0, `overflow=${state.overflow}
 await page.screenshot({ path: `${SHOTS}/01-cover-1280.png` });
 
 // ------------------------------------------------------------ turn pages
-await page.evaluate(() => document.querySelector("[data-flip-pdf]").flipbook.next());
+await page.evaluate(() => document.querySelector(".viewer [data-flip-pdf]").flipbook.next());
 await sleep(900);
 const afterNext = await page.evaluate(() => {
-  const book = document.querySelector("[data-flip-pdf]").flipbook;
-  return { spread: book.spread, pages: book.currentPages, counter: document.querySelector(".fp-counter").textContent };
+  const book = document.querySelector(".viewer [data-flip-pdf]").flipbook;
+  return { spread: book.spread, pages: book.currentPages, counter: document.querySelector(".viewer .fp-counter").textContent };
 });
 check("next() advances a spread", afterNext.spread === 1, JSON.stringify(afterNext));
 
 // Frames during a turn, for visual inspection of the curl.
-await page.evaluate(() => document.querySelector("[data-flip-pdf]").flipbook.next());
+await page.evaluate(() => document.querySelector(".viewer [data-flip-pdf]").flipbook.next());
 await sleep(180);
 await page.screenshot({ path: `${SHOTS}/02-turn-25.png` });
 await sleep(200);
@@ -92,12 +92,12 @@ await sleep(600);
 await page.screenshot({ path: `${SHOTS}/05-spread-2.png` });
 
 const pixels = await page.evaluate(() => {
-  const canvas = document.querySelector(".fp-canvas");
+  const canvas = document.querySelector(".viewer .fp-canvas");
   const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
   if (!gl) return { kind: "2d" };
   // The context has no preserved backbuffer, so redraw and read in one task:
   // a read after a composited frame returns zeros.
-  document.querySelector("[data-flip-pdf]").flipbook._draw();
+  document.querySelector(".viewer [data-flip-pdf]").flipbook._draw();
   const w = canvas.width, h = canvas.height;
   const buf = new Uint8Array(w * h * 4);
   gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
@@ -118,13 +118,13 @@ if (pixels.kind === "gl") {
 }
 
 // ------------------------------------------------------------- backwards
-await page.evaluate(() => document.querySelector("[data-flip-pdf]").flipbook.prev());
+await page.evaluate(() => document.querySelector(".viewer [data-flip-pdf]").flipbook.prev());
 await sleep(900);
-const afterPrev = await page.evaluate(() => document.querySelector("[data-flip-pdf]").flipbook.spread);
+const afterPrev = await page.evaluate(() => document.querySelector(".viewer [data-flip-pdf]").flipbook.spread);
 check("prev() returns a spread", afterPrev === 1, `spread=${afterPrev}`);
 
 // ------------------------------------------------------------ drag to turn
-const box = await page.locator(".fp-stage").boundingBox();
+const box = await page.locator(".viewer .fp-stage").boundingBox();
 await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.5);
 await page.mouse.down();
 for (let i = 1; i <= 12; i++) {
@@ -134,26 +134,26 @@ for (let i = 1; i <= 12; i++) {
 await page.screenshot({ path: `${SHOTS}/06-drag-mid.png` });
 await page.mouse.up();
 await sleep(900);
-const afterDrag = await page.evaluate(() => document.querySelector("[data-flip-pdf]").flipbook.spread);
+const afterDrag = await page.evaluate(() => document.querySelector(".viewer [data-flip-pdf]").flipbook.spread);
 check("drag turns the page", afterDrag === 2, `spread=${afterDrag}`);
 
 // ----------------------------------------------------------------- keyboard
-await page.locator(".fp").focus();
+await page.locator(".viewer .fp").focus();
 await page.keyboard.press("ArrowRight");
 await sleep(900);
-const afterKey = await page.evaluate(() => document.querySelector("[data-flip-pdf]").flipbook.spread);
+const afterKey = await page.evaluate(() => document.querySelector(".viewer [data-flip-pdf]").flipbook.spread);
 check("arrow key turns the page", afterKey === 3, `spread=${afterKey}`);
 
 // --------------------------------------------------------------- thumbnails
-await page.locator(".fp-btn.fp-thumbs").click();
+await page.locator(".viewer .fp-btn.fp-thumbs").click();
 await sleep(700);
 const drawer = await page.evaluate(() => {
-  const panel = document.querySelector(".fp-drawer");
+  const panel = document.querySelector(".viewer .fp-drawer");
   return {
     open: !panel.hidden,
     thumbs: panel.querySelectorAll(".fp-thumb").length,
     painted: panel.querySelectorAll(".fp-thumb-img img").length,
-    expanded: document.querySelector(".fp-btn.fp-thumbs").getAttribute("aria-expanded"),
+    expanded: document.querySelector(".viewer .fp-btn.fp-thumbs").getAttribute("aria-expanded"),
   };
 });
 check("thumbnail drawer opens", drawer.open && drawer.expanded === "true", JSON.stringify(drawer));
@@ -177,8 +177,8 @@ const contrast = await page.evaluate(() => {
     const [l1, l2] = [lum(a), lum(b)].sort((x, y) => y - x);
     return (l1 + 0.05) / (l2 + 0.05);
   };
-  const counter = document.querySelector(".fp-counter");
-  const bar = document.querySelector(".fp-bar");
+  const counter = document.querySelector(".viewer .fp-counter");
+  const bar = document.querySelector(".viewer .fp-bar");
   return {
     counter: ratio(toRgb(getComputedStyle(counter).color), toRgb(getComputedStyle(bar).backgroundColor)),
   };
@@ -190,15 +190,15 @@ for (const width of [320, 390, 768]) {
   await page.setViewportSize({ width, height: 780 });
   await sleep(700);
   const probe = await page.evaluate(() => {
-    const host = document.querySelector("[data-flip-pdf]");
+    const host = document.querySelector(".viewer [data-flip-pdf]");
     const book = host.flipbook;
-    const bar = document.querySelector(".fp-bar");
+    const bar = document.querySelector(".viewer .fp-bar");
     return {
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       mode: book.book.isSingle ? "single" : "double",
       barOverflow: bar.scrollWidth - bar.clientWidth,
-      counterVisible: document.querySelector(".fp-counter").getBoundingClientRect().width > 0,
-      tapTargets: [...document.querySelectorAll(".fp-btn")].map((b) => b.getBoundingClientRect().width),
+      counterVisible: document.querySelector(".viewer .fp-counter").getBoundingClientRect().width > 0,
+      tapTargets: [...document.querySelectorAll(".viewer .fp-btn")].map((b) => b.getBoundingClientRect().width),
     };
   });
   check(`no overflow at ${width}`, probe.overflow <= 0, `overflow=${probe.overflow}`);
@@ -215,23 +215,131 @@ for (const width of [320, 390, 768]) {
 
 check("no console errors", errors.length === 0, errors.slice(0, 3).join(" | "));
 
+// --------------------------------------------------------- narrow containers
+// A card in a column is not the demo's full-row viewer: the book has to live
+// inside a box that is smaller than 360px tall and 240px wide.
+const narrow = await page.evaluate(async () => {
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "position:fixed;left:-4000px;top:0;width:300px;height:300px;overflow:hidden";
+  const host = document.createElement("div");
+  host.style.height = "100%";
+  wrap.append(host);
+  document.body.append(wrap);
+
+  const { Flipbook } = window.FlipPdf;
+  const book = new Flipbook(host, { workerSrc: "/dist/pdf.worker.min.mjs" });
+  await book.load("/demo/sample.pdf");
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  await sleep(600);
+
+  const read = () => {
+    const fp = host.querySelector(".fp");
+    const bar = host.querySelector(".fp-bar");
+    const fr = fp.getBoundingClientRect();
+    return {
+      hostH: host.clientHeight,
+      stageH: host.querySelector(".fp-stage").clientHeight,
+      mode: book.book.mode,
+      barOverflow: bar.scrollWidth - bar.clientWidth,
+      clipped: [...bar.children].filter((k) => k.getBoundingClientRect().right > fr.right + 0.5).length,
+      counter: host.querySelector(".fp-counter").getBoundingClientRect().width > 0,
+    };
+  };
+
+  const at = [];
+  at.push({ size: "300x300", ...read() });
+
+  for (const [w, h] of [[240, 300], [200, 200]]) {
+    wrap.style.width = `${w}px`;
+    wrap.style.height = `${h}px`;
+    await sleep(400);
+    at.push({ size: `${w}x${h}`, ...read() });
+  }
+
+  wrap.style.height = "auto";
+  host.style.height = "";
+  await sleep(400);
+  const fallback = host.clientHeight;
+
+  book.destroy();
+  wrap.remove();
+  return { at, fallback };
+});
+
+check(
+  "a 300px card gets a 300px viewer, not 360",
+  narrow.at[0].hostH === 300,
+  `hostH=${narrow.at[0].hostH}`,
+);
+check(
+  "every narrow card keeps the toolbar inside the frame",
+  narrow.at.every((r) => r.barOverflow <= 0 && r.clipped === 0),
+  narrow.at.map((r) => `${r.size}: overflow=${r.barOverflow} clipped=${r.clipped}`).join(" | "),
+);
+check(
+  "the toolbar drops the progress bar before the buttons",
+  narrow.at[0].counter && !narrow.at[2].counter,
+  narrow.at.map((r) => `${r.size}: counter=${r.counter}`).join(" | "),
+);
+check(
+  "a narrow container switches to a single page",
+  narrow.at.every((r) => r.mode === "single"),
+  narrow.at.map((r) => r.mode).join(","),
+);
+check("a height-less container falls back to 240px", narrow.fallback === 240, `h=${narrow.fallback}`);
+
+// ---------------------------------------------------------- thumbnail drawer
+// A thumbnail must show the whole page. The image is sized from its intrinsic
+// ratio, so "image taller than its box" means the box collapsed and the page is
+// cropped, which is what a stretched grid row used to do in a short container.
+const thumbs = await page.evaluate(async () => {
+  const hosts = [document.querySelector(".viewer [data-flip-pdf]"), document.querySelector('[data-label="Sample PDF in a 240px card"]')];
+  const out = [];
+  for (const host of hosts) {
+    host.querySelector(".fp-btn.fp-thumbs").click();
+    await new Promise((r) => setTimeout(r, 900));
+    const box = host.querySelector(".fp-thumb-img");
+    const img = box.querySelector("img");
+    out.push({
+      label: host.dataset.label || "viewer",
+      tiles: host.querySelectorAll(".fp-thumb").length,
+      painted: host.querySelectorAll(".fp-thumb-img img").length,
+      box: Math.round(box.getBoundingClientRect().height),
+      img: Math.round(img.getBoundingClientRect().height),
+      overflow: (() => {
+        const grid = host.querySelector(".fp-thumbs-grid");
+        return grid.scrollWidth - grid.clientWidth;
+      })(),
+    });
+    host.querySelector(".fp-btn.fp-thumbs").click();
+  }
+  return out;
+});
+for (const t of thumbs) {
+  check(
+    `thumbnails show the whole page in the ${t.label}`,
+    t.box > 40 && t.img === t.box && t.painted === t.tiles && t.overflow <= 0,
+    JSON.stringify(t),
+  );
+}
+
 // ------------------------------------------------------- single-mode turn
 await page.setViewportSize({ width: 390, height: 780 });
 await sleep(500);
 await page.evaluate(async () => {
-  const book = document.querySelector("[data-flip-pdf]").flipbook;
+  const book = document.querySelector(".viewer [data-flip-pdf]").flipbook;
   await book.goToSpread(0);
 });
 await sleep(400);
 const single = await page.evaluate(async () => {
-  const book = document.querySelector("[data-flip-pdf]").flipbook;
+  const book = document.querySelector(".viewer [data-flip-pdf]").flipbook;
   const before = book.spread;
   await book.next();
   await new Promise((r) => setTimeout(r, 900));
   // Draw and read back in the same task: the context has no preserved
   // backbuffer, so a read outside the frame returns zeros.
   book._draw();
-  const canvas = document.querySelector(".fp-canvas");
+  const canvas = document.querySelector(".viewer .fp-canvas");
   const gl = book.renderer.gl;
   const px = new Uint8Array(4 * 64 * 64);
   gl.readPixels(
@@ -250,7 +358,7 @@ const single = await page.evaluate(async () => {
     after: book.spread,
     single: book.book.isSingle,
     lit: lit / (px.length / 4),
-    counter: document.querySelector(".fp-counter").textContent,
+    counter: document.querySelector(".viewer .fp-counter").textContent,
   };
 });
 check("single mode turns one page at a time", single.single && single.after === single.before + 1, JSON.stringify(single));
@@ -261,9 +369,9 @@ await page.screenshot({ path: `${SHOTS}/09-single.png` });
 await page.setViewportSize({ width: 1280, height: 900 });
 await sleep(500);
 const flick = await page.evaluate(async () => {
-  const book = document.querySelector("[data-flip-pdf]").flipbook;
+  const book = document.querySelector(".viewer [data-flip-pdf]").flipbook;
   await book.goToSpread(2);
-  const stage = document.querySelector(".fp-stage");
+  const stage = document.querySelector(".viewer .fp-stage");
   const box = stage.getBoundingClientRect();
   const y = box.top + box.height / 2;
   const down = (x) => stage.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 7, clientX: x, clientY: y, bubbles: true, button: 0, isPrimary: true }));
@@ -295,7 +403,7 @@ check("release runs the spring", flick.anim === "spring", `anim=${flick.anim}`);
 // 50 ms per delivered frame, so a 200 ms frame moved the spring 50 ms. It has
 // to advance by the time that actually passed.
 const stall = await page.evaluate(() => {
-  const book = document.querySelector("[data-flip-pdf]").flipbook;
+  const book = document.querySelector(".viewer [data-flip-pdf]").flipbook;
   const saved = book.turn;
   book.turn = { progress: 0 };
   const anim = { kind: "spring", from: 0, to: 1, x: -1, v: 0, omega: 11, elapsed: 0, last: 1000 };
@@ -316,7 +424,7 @@ check(
 // on every late frame, and must already show the page the reader is about to
 // land on.
 const landing = await page.evaluate(async () => {
-  const book = document.querySelector("[data-flip-pdf]").flipbook;
+  const book = document.querySelector(".viewer [data-flip-pdf]").flipbook;
   await book.goToSpread(0);
   await new Promise((r) => setTimeout(r, 350));
 

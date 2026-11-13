@@ -64,6 +64,12 @@ or `data-fit="0.9"` work without writing JavaScript.
 Give the container a height. The viewer fills it and letterboxes the book inside,
 so nothing is clipped and nothing overflows.
 
+The container also decides the width, so this works in a `col-5`, a card or a
+sidebar, not just a full row. Below `720px` of container width the `auto` mode
+collapses the spread to a single page, and the toolbar drops the progress bar
+before it runs out of room. With no height at all the viewer falls back to
+`240px`, which a short card can lower with `--fp-min-height: 0`.
+
 ### From a module
 
 ```js

@@ -29,6 +29,12 @@ Rules that break it if ignored:
 
 - **The container needs an explicit height.** The viewer fills it and letterboxes
   the book inside. A zero-height container renders nothing.
+- **Width comes from the container, so never set one.** A `col-5`, a card or a
+  sidebar is fine; `mode: "auto"` switches to a single page below `720px`, the
+  toolbar hides the progress bar under `300px` and the counter under `220px`.
+  Do not build your own responsive switching.
+- **A height-less container falls back to `240px`.** Lower it with
+  `--fp-min-height: 0` when the card is shorter than that.
 - **Serve over HTTP.** A `file://` page cannot load the worker module or fetch
   the PDF.
 - **Do not wrap it in your own pager.** Arrow keys, drag, click, trackpad and

@@ -6,7 +6,25 @@ the usual 0.x caveat that the public surface may still move.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- A container shorter than 360 px was overridden by the viewer's own
+  `min-height`, so the toolbar ended up outside the card and the book was
+  clipped. The viewer now takes the height it is given; the fallback for a
+  height-less parent is `240px` and can be lowered with `--fp-min-height`.
+- The toolbar clipped the fullscreen button in containers narrower than about
+  220 px.
+- Thumbnails were cropped: the strip stretched its rows to fit the panel, so a
+  tile could be shorter than the page inside it. Rows now take their content
+  height, and each image keeps its intrinsic ratio through `width`/`height`
+  attributes, so a thumbnail always shows the whole page.
+
+### Added
+
+- Container queries for narrow columns: the progress bar drops out below 300 px
+  and the counter below 220 px, so navigation never overflows.
+- A "fits the column" section in the demo, showing the same document at 380 px
+  and 240 px.
 
 ## [0.1.0] - 2026-11-12
 

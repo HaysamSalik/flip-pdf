@@ -953,7 +953,13 @@ export class Flipbook {
     if (cached) return cached;
     const job = this.source
       .render(page, 96, { maxPixels: 192 })
-      .then((raster) => raster.canvas.toDataURL("image/jpeg", 0.72))
+      // The image keeps its intrinsic ratio as width/height attributes, so the
+      // tile reserves the right height before the JPEG has decoded.
+      .then((raster) => ({
+        url: raster.canvas.toDataURL("image/jpeg", 0.72),
+        width: raster.canvas.width,
+        height: raster.canvas.height,
+      }))
       .catch(() => null);
     this.thumbUrls.set(page, job);
     return job;
@@ -970,12 +976,12 @@ export class Flipbook {
       while (cursor < queue.length) {
         if (this.destroyed || this.nodes.panel.hidden) return;
         const button = queue[cursor++];
-        const url = await this._thumbUrl(Number(button.dataset.page));
-        if (!url || button.dataset.painted || this.destroyed) continue;
-        const img = new Image();
+        const thumb = await this._thumbUrl(Number(button.dataset.page));
+        if (!thumb || button.dataset.painted || this.destroyed) continue;
+        const img = new Image(thumb.width, thumb.height);
         img.decoding = "async";
         img.alt = "";
-        img.src = url;
+        img.src = thumb.url;
         button.querySelector(".fp-thumb-img").append(img);
         button.dataset.painted = "1";
       }

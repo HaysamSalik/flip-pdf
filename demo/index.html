@@ -47,6 +47,23 @@
     overflow: hidden;
     background: var(--desk);
   }
+  .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 26px;
+    align-items: flex-start;
+  }
+  .figure { margin: 0; flex: 0 1 380px; max-width: 100%; }
+  .figure.is-narrow { flex-basis: 240px; }
+  .figure-book {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--desk);
+  }
+  .figure figcaption { margin-top: 8px; color: var(--muted); font-size: 13px; }
+  .figure-note { flex: 1 1 300px; min-width: 240px; }
+  .figure-note p { margin-top: 0; color: var(--muted); }
   .hint {
     margin: 10px 0 0;
     color: var(--muted);
@@ -119,6 +136,46 @@
     <span id="page-count">Loading</span>. Drag horizontally to turn, click a side
     to step, or press the arrow keys.
   </p>
+
+  <section>
+    <h2>Fits the column, not just the row</h2>
+    <p style="margin-top:0;max-width:64ch;color:var(--muted)">
+      The viewer measures its own container, so a <code>col-5</code>, a card or a
+      sidebar is enough. The pages scale to that width, and below
+      <code>720px</code> the spread collapses to a single page on its own.
+    </p>
+    <div class="cards">
+      <figure class="figure">
+        <div class="figure-book" style="height: 440px">
+          <div data-flip-pdf data-src="./sample.pdf" data-label="Sample PDF in a 380px card"></div>
+        </div>
+        <figcaption>A 380px card: single page, pages sized to the height.</figcaption>
+      </figure>
+      <figure class="figure is-narrow">
+        <div class="figure-book" style="height: 320px">
+          <div data-flip-pdf data-src="./sample.pdf" data-label="Sample PDF in a 240px card"></div>
+        </div>
+        <figcaption>A 240px card: the progress bar drops out, the counter and buttons stay.</figcaption>
+      </figure>
+      <div class="figure-note">
+        <p>Size it with CSS, not with the plugin:</p>
+<pre><code>.card { width: 380px; height: 440px; }
+
+&lt;div class="card"&gt;
+  &lt;div data-flip-pdf
+       data-src="book.pdf"
+       style="height: 100%"&gt;&lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+        <p style="margin-bottom:0">
+          Give it a height and the book fills that box at whatever width the
+          column gives. With no height at all it falls back to
+          <code>240px</code>; <code>--fp-min-height: 0</code> removes even that
+          fallback so a short card never overflows.
+        </p>
+      </div>
+    </div>
+  </section>
 
   <section>
     <div class="split">
